@@ -750,6 +750,10 @@ function updateTheme() {
     }
 }
 
+// Achievement Queue System - Fix "BOOM" issue
+let achievementQueue = [];
+let isShowingAchievement = false;
+
 // Check and unlock achievements
 function checkAchievements() {
     const newAchievements = [];
@@ -763,16 +767,76 @@ function checkAchievements() {
             // Save to localStorage
             localStorage.setItem('achievements', JSON.stringify(gameState.achievements));
             
-            // Show achievement notification
-            showAchievementNotification(condition);
+            // Add to queue instead of showing immediately
+            achievementQueue.push(condition);
         }
     });
+    
+    // Update achievement counter immediately
+    updateAchievementCounter();
+    
+    // Show summary if multiple achievements unlocked
+    if (newAchievements.length > 3) {
+        const totalPoints = newAchievements.reduce((sum, a) => sum + a.points, 0);
+        showMultiAchievementSummary(newAchievements.length, totalPoints);
+    }
+    
+    // Process queue if not already processing
+    if (!isShowingAchievement && achievementQueue.length > 0) {
+        processAchievementQueue();
+    }
     
     return newAchievements;
 }
 
-// Show achievement notification
-function showAchievementNotification(achievement) {
+// Show summary for multiple achievements
+function showMultiAchievementSummary(count, totalPoints) {
+    const summary = document.createElement('div');
+    summary.className = 'achievement-summary';
+    summary.innerHTML = `
+        <div class="achievement-summary-content">
+            <div class="achievement-summary-icon">🎊</div>
+            <div class="achievement-summary-title">COMBO! ${count} ACHIEVEMENTS UNLOCKED!</div>
+            <div class="achievement-summary-points">+${totalPoints} TOTAL POINTS!</div>
+        </div>
+    `;
+    
+    document.body.appendChild(summary);
+    
+    // Play combo sound
+    HorrorSounds.trallalala();
+    setTimeout(() => HorrorSounds.tungTung(), 200);
+    
+    // Animate in
+    setTimeout(() => summary.classList.add('show'), 10);
+    
+    // Remove after 2 seconds
+    setTimeout(() => {
+        summary.classList.remove('show');
+        setTimeout(() => summary.remove(), 500);
+    }, 2000);
+}
+
+// Process achievement queue one by one
+function processAchievementQueue() {
+    if (achievementQueue.length === 0) {
+        isShowingAchievement = false;
+        return;
+    }
+    
+    isShowingAchievement = true;
+    const achievement = achievementQueue.shift(); // Get first in queue
+    
+    showAchievementNotification(achievement, () => {
+        // After showing this achievement, show next one
+        setTimeout(() => {
+            processAchievementQueue();
+        }, 300); // 300ms delay between achievements
+    });
+}
+
+// Show achievement notification with callback
+function showAchievementNotification(achievement, onComplete) {
     const notification = document.createElement('div');
     notification.className = 'achievement-notification';
     notification.innerHTML = `
@@ -792,11 +856,22 @@ function showAchievementNotification(achievement) {
     // Animate in
     setTimeout(() => notification.classList.add('show'), 10);
     
-    // Remove after 5 seconds
+    // Remove after 3 seconds (reduced from 5 for faster queue)
     setTimeout(() => {
         notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 500);
-    }, 5000);
+        setTimeout(() => {
+            notification.remove();
+            if (onComplete) onComplete();
+        }, 500);
+    }, 3000);
+}
+
+// Update achievement counter display
+function updateAchievementCounter() {
+    const achievementCount = document.getElementById('achievements');
+    if (achievementCount) {
+        achievementCount.textContent = `${gameState.achievements.length}/${winConditions.length}`;
+    }
 }
 
 // Update high score
@@ -1358,7 +1433,20 @@ function handleWin() {
                 gameState.achievements.push('comeback_kid');
                 const achievement = winConditions.find(a => a.id === 'comeback_kid');
                 gameState.score += achievement.points;
-                showAchievementNotification(achievement);
+                
+                // Save to localStorage
+                localStorage.setItem('achievements', JSON.stringify(gameState.achievements));
+                
+                // Update counter immediately
+                updateAchievementCounter();
+                
+                // Add to queue instead of showing immediately
+                achievementQueue.push(achievement);
+                
+                // Process queue if not already processing
+                if (!isShowingAchievement) {
+                    processAchievementQueue();
+                }
             }
         }
     }
@@ -1758,10 +1846,7 @@ function updateScore() {
     }
     
     // Update achievements count
-    const achievementCount = document.getElementById('achievement-count');
-    if (achievementCount) {
-        achievementCount.textContent = `${gameState.achievements.length}/${winConditions.length}`;
-    }
+    updateAchievementCounter();
 }
 
 // Disable choice buttons
