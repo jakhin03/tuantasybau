@@ -1,5 +1,3 @@
-# Tài Xỉu - Vietnamese Horror Game
-
 A web-based horror game inspired by Vietnamese coin toss mechanics with a dark twist.
 
 ## 🎮 Game Concept
