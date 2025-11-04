@@ -1564,44 +1564,106 @@ function showJumpscare() {
     const randomImage = jumpscareImages[Math.floor(Math.random() * jumpscareImages.length)];
     jumpscareImage.src = randomImage;
     
-    jumpscareOverlay.classList.add('active');
-    
     // BRAINROT LOSS MESSAGE - show before jumpscare
     const lossMsg = lossMessages[Math.floor(Math.random() * lossMessages.length)];
     document.getElementById('message').textContent = lossMsg;
     document.getElementById('message').style.fontSize = '2rem';
     document.getElementById('message').style.animation = 'intenseGlitch 0.1s infinite';
     
-    // Play jumpscare sound
+    // ============ EXTREME JUMPSCARE - MULTIPLE SOUND LAYERS ============
+    // Layer 1: Jumpscare sound (high pitch scream)
     HorrorSounds.jumpscare();
     
-    // Spam emojis on loss
-    for (let i = 0; i < 8; i++) {
-        setTimeout(() => createJerkingEmoji(), i * 50);
+    // Layer 2: Immediate static burst
+    setTimeout(() => HorrorSounds.static(), 0);
+    
+    // Layer 3: Deep bass boom at 100ms
+    setTimeout(() => HorrorSounds.boom(), 100);
+    
+    // Layer 4: Demon growl at 200ms
+    setTimeout(() => HorrorSounds.demonGrowl(), 200);
+    
+    // Layer 5: Glitch sound at 300ms
+    setTimeout(() => HorrorSounds.glitchSound(), 300);
+    
+    // Layer 6: Another screech at 400ms
+    setTimeout(() => HorrorSounds.screech(), 400);
+    
+    // Layer 7: Heartbeat during peak fear
+    setTimeout(() => {
+        HorrorSounds.heartbeat();
+        setTimeout(() => HorrorSounds.heartbeat(), 800);
+    }, 600);
+    
+    // ============ VISUAL CHAOS EXPLOSION ============
+    // Spawn MASSIVE amount of emojis in rapid succession
+    for (let i = 0; i < 20; i++) {
+        setTimeout(() => createJerkingEmoji(), i * 25); // Faster spawn
     }
     
-    // Spawn demons
+    // Spawn MORE demons with varying delays
+    for (let i = 0; i < 10; i++) {
+        setTimeout(() => createDemon(), i * 60);
+    }
+    
+    // Add shadow creatures for extra horror
     for (let i = 0; i < 5; i++) {
-        setTimeout(() => createDemon(), i * 100);
+        setTimeout(() => createShadowCreature(), i * 100);
     }
     
-    // Add screen shake
-    document.body.style.animation = 'shake 0.5s';
+    // Blood drips everywhere
+    for (let i = 0; i < 8; i++) {
+        setTimeout(() => createBloodDrip(), i * 80);
+    }
     
-    // Flash random colors
+    // ============ SCREEN EFFECTS STACK ============
+    // Extreme shake
+    document.body.style.animation = 'extremeShake 0.5s infinite';
+    
+    // RGB split effect
+    setTimeout(() => {
+        document.body.style.animation += ', rgbSplit 0.1s infinite';
+    }, 100);
+    
+    // Spiral distortion
+    setTimeout(() => {
+        document.querySelector('.game-area').style.animation = 'spiral 0.5s';
+    }, 200);
+    
+    // Screen tear effect
+    setTimeout(() => {
+        document.body.classList.add('screen-tear');
+    }, 300);
+    
+    // ============ RAPID COLOR FLASH ============
     let colorFlash = setInterval(() => {
-        document.body.style.filter = `hue-rotate(${Math.random() * 360}deg) saturate(${Math.random() * 5})`;
-    }, 50);
+        const hue = Math.random() * 360;
+        const saturation = 3 + Math.random() * 3; // 3-6x saturation
+        const brightness = 0.5 + Math.random() * 1; // Random brightness
+        document.body.style.filter = `hue-rotate(${hue}deg) saturate(${saturation}) brightness(${brightness}) contrast(2)`;
+    }, 30); // Faster flash (30ms instead of 50ms)
     
+    // ============ DELAYED JUMPSCARE REVEAL ============
+    // Wait 150ms before showing jumpscare (build tension)
+    setTimeout(() => {
+        jumpscareOverlay.classList.add('active');
+        // Extra sound burst on reveal
+        HorrorSounds.jumpscare();
+        HorrorSounds.boom();
+    }, 150);
+    
+    // ============ CLEANUP ============
     setTimeout(() => {
         clearInterval(colorFlash);
         document.body.style.filter = '';
-        jumpscareOverlay.classList.remove('active');
         document.body.style.animation = '';
+        document.body.classList.remove('screen-tear');
+        document.querySelector('.game-area').style.animation = '';
+        jumpscareOverlay.classList.remove('active');
         document.getElementById('message').style.fontSize = '';
         document.getElementById('message').style.animation = '';
         resetRound();
-    }, 1500);
+    }, 2000); // Extended to 2s for more horror
 }
 
 // Reset round
