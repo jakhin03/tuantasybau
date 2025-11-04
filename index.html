@@ -12,42 +12,86 @@
 <body>
     <div class="container">
         <!-- Main Menu -->
-        <div id="menu" class="screen active">
-            <div class="glitch-wrapper">
-                <h1 class="glitch" data-text="TÀI XỈU">TÀI XỈU</h1>
+            <div id="menu" class="screen active">
+        <div class="container">
+            <h1 class="glitch" data-text="TÀI XỈU">TÀI XỈU</h1>
+            <p class="subtitle">Trò chơi của số phận</p>
+            
+            <!-- Game Mode Selection -->
+            <div class="game-modes">
+                <div class="mode-card" onclick="selectGameMode('classic')">
+                    <div class="mode-icon">🎲</div>
+                    <div class="mode-title">Cổ Điển</div>
+                    <div class="mode-desc">Chế độ thường - 4 đồng xu</div>
+                </div>
+                <div class="mode-card" onclick="selectGameMode('madness')">
+                    <div class="mode-icon">🔥</div>
+                    <div class="mode-title">Điên Loạn</div>
+                    <div class="mode-desc">5-9 đồng xu ngẫu nhiên</div>
+                </div>
+                <div class="mode-card" onclick="selectGameMode('cursed')">
+                    <div class="mode-icon">👻</div>
+                    <div class="mode-title">Nguyền Rủa</div>
+                    <div class="mode-desc">Đồng xu có thể đổi mặt</div>
+                </div>
+                <div class="mode-card" onclick="selectGameMode('survival')">
+                    <div class="mode-icon">💀</div>
+                    <div class="mode-title">Sinh Tồn</div>
+                    <div class="mode-desc">3 mạng - không được thua</div>
+                </div>
+                <div class="mode-card" onclick="selectGameMode('timeattack')">
+                    <div class="mode-icon">⏱️</div>
+                    <div class="mode-title">Tốc Độ</div>
+                    <div class="mode-desc">60 giây - thắng nhiều nhất</div>
+                </div>
+                <div class="mode-card" onclick="selectGameMode('nightmare')">
+                    <div class="mode-icon">😈</div>
+                    <div class="mode-title">Ác Mộng</div>
+                    <div class="mode-desc">Tất cả chaos từ đầu</div>
+                </div>
             </div>
-            <p class="subtitle">Bạn có dám chơi không?</p>
+            
             <button class="btn-start" onclick="startGame()">BẮT ĐẦU</button>
-            <div class="warning">⚠️ Cảnh báo: Game chứa nội dung kinh dị và âm thanh đột ngột</div>
+            <p class="warning">⚠️ Cảnh báo: Game có nội dung kinh dị</p>
         </div>
+    </div>
 
         <!-- Game Screen -->
-        <div id="game" class="screen">
+            <!-- Game Screen -->
+    <div id="game" class="screen">
+        <div class="container">
+            <!-- Score Board -->
             <div class="score-board">
                 <div class="score-item">
-                    <span class="label">Điểm:</span>
-                    <span id="score" class="value">0</span>
+                    <span class="label">Điểm</span>
+                    <span class="value" id="score">0</span>
                 </div>
                 <div class="score-item">
-                    <span class="label">Thắng:</span>
-                    <span id="wins" class="value">0</span>
+                    <span class="label">Thắng</span>
+                    <span class="value" id="wins">0</span>
                 </div>
                 <div class="score-item">
-                    <span class="label">Thua:</span>
-                    <span id="losses" class="value">0</span>
+                    <span class="label">Thua</span>
+                    <span class="value" id="losses">0</span>
                 </div>
                 <div class="score-item">
-                    <span class="label">Streak:</span>
-                    <span id="streak" class="value">-</span>
+                    <span class="label">Streak</span>
+                    <span class="value" id="streak">0</span>
                 </div>
                 <div class="score-item">
-                    <span class="label">High:</span>
-                    <span id="high-score" class="value">0</span>
+                    <span class="label">High Score</span>
+                    <span class="value" id="highscore">0</span>
                 </div>
                 <div class="score-item">
-                    <span class="label">🏆:</span>
-                    <span id="achievement-count" class="value">0/22</span>
+                    <span class="label">Thành Tựu</span>
+                    <span class="value" id="achievements">0/22</span>
                 </div>
+            </div>
+            
+            <!-- Mode Info Bar -->
+            <div class="mode-info-bar">
+                <span class="mode-badge" id="mode-badge">🎲 Cổ Điển</span>
+                <span class="mode-extra" id="mode-extra"></span>
             </div>
 
             <div class="game-area">

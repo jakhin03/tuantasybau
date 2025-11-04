@@ -17,7 +17,54 @@ let gameState = {
     achievements: JSON.parse(localStorage.getItem('achievements')) || [],
     themeMode: 'normal', // normal, dark, light
     totalCoinsFlipped: 0,
-    perfectRounds: 0
+    perfectRounds: 0,
+    // New game mode properties
+    gameMode: 'classic',
+    survivalLives: 3,
+    timeAttackTimeLeft: 60,
+    timeAttackInterval: null,
+    cursedCoins: [],
+    nightmareActive: false
+};
+
+// Game Mode Definitions
+const gameModes = {
+    classic: {
+        name: "Cổ Điển",
+        icon: "🎲",
+        coins: 4,
+        description: "Chế độ thường với 4 đồng xu"
+    },
+    madness: {
+        name: "Điên Loạn",
+        icon: "🔥",
+        coins: () => Math.floor(Math.random() * 5) + 5, // 5-9 coins
+        description: "Số đồng xu ngẫu nhiên mỗi lượt"
+    },
+    cursed: {
+        name: "Nguyền Rủa",
+        icon: "👻",
+        coins: 6,
+        description: "Đồng xu có thể đổi mặt sau khi tung"
+    },
+    survival: {
+        name: "Sinh Tồn",
+        icon: "💀",
+        coins: 4,
+        description: "Chỉ có 3 mạng - không được thua"
+    },
+    timeattack: {
+        name: "Tốc Độ",
+        icon: "⏱️",
+        coins: 4,
+        description: "60 giây - ghi điểm cao nhất"
+    },
+    nightmare: {
+        name: "Ác Mộng",
+        icon: "😈",
+        coins: 7,
+        description: "Tất cả chaos kích hoạt ngay từ đầu"
+    }
 };
 
 // Win Conditions & Achievements
@@ -520,6 +567,22 @@ const jumpscareImages = [
     'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjgwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjgwMCIgZmlsbD0iIzAwMCIvPjxjaXJjbGUgY3g9IjQwMCIgY3k9IjQwMCIgcj0iMjAwIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZjAwMDAiIHN0cm9rZS13aWR0aD0iNSIvPjx0ZXh0IHg9IjQwMCIgeT0iNDIwIiBmb250LXNpemU9IjEwMCIgZmlsbD0iI2ZmMDAwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+SOG6ok0hPC90ZXh0Pjwvc3ZnPg==',
 ];
 
+// Select Game Mode
+function selectGameMode(mode) {
+    gameState.gameMode = mode;
+    
+    // Visual feedback
+    document.querySelectorAll('.mode-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    event.target.closest('.mode-card').classList.add('selected');
+    
+    // Play selection sound
+    if (HorrorSounds.audioContext) {
+        HorrorSounds.coinFlip();
+    }
+}
+
 // Start game
 function startGame() {
     document.getElementById('menu').classList.remove('active');
@@ -536,6 +599,9 @@ function startGame() {
     // Update high score display
     updateHighScore();
     
+    // Initialize game mode
+    initializeGameMode();
+    
     // Show tutorial if first time
     if (!gameState.tutorialShown) {
         showTutorial();
@@ -544,6 +610,120 @@ function startGame() {
     
     // Set initial theme
     updateTheme();
+}
+
+// Initialize Game Mode
+function initializeGameMode() {
+    const mode = gameModes[gameState.gameMode];
+    
+    // Update mode display
+    document.getElementById('mode-badge').textContent = `${mode.icon} ${mode.name}`;
+    
+    // Mode-specific initialization
+    switch(gameState.gameMode) {
+        case 'survival':
+            gameState.survivalLives = 3;
+            document.getElementById('mode-extra').textContent = `❤️ Mạng: ${gameState.survivalLives}`;
+            break;
+            
+        case 'timeattack':
+            gameState.timeAttackTimeLeft = 60;
+            document.getElementById('mode-extra').textContent = `⏱️ ${gameState.timeAttackTimeLeft}s`;
+            startTimeAttackTimer();
+            break;
+            
+        case 'nightmare':
+            gameState.chaosLevel = 7; // Start with max chaos
+            gameState.nightmareActive = true;
+            document.getElementById('mode-extra').textContent = `😈 CHAOS MAX`;
+            applyNightmareEffects();
+            break;
+            
+        case 'cursed':
+            document.getElementById('mode-extra').textContent = `👻 Cẩn thận...`;
+            break;
+            
+        case 'madness':
+            document.getElementById('mode-extra').textContent = `🔥 Ngẫu nhiên`;
+            break;
+            
+        default:
+            document.getElementById('mode-extra').textContent = '';
+    }
+}
+
+// Time Attack Timer
+function startTimeAttackTimer() {
+    if (gameState.timeAttackInterval) {
+        clearInterval(gameState.timeAttackInterval);
+    }
+    
+    gameState.timeAttackInterval = setInterval(() => {
+        gameState.timeAttackTimeLeft--;
+        document.getElementById('mode-extra').textContent = `⏱️ ${gameState.timeAttackTimeLeft}s`;
+        
+        if (gameState.timeAttackTimeLeft <= 10) {
+            document.getElementById('mode-extra').style.color = '#ff0000';
+            HorrorSounds.heartbeat();
+        }
+        
+        if (gameState.timeAttackTimeLeft <= 0) {
+            clearInterval(gameState.timeAttackInterval);
+            endTimeAttack();
+        }
+    }, 1000);
+}
+
+// End Time Attack
+function endTimeAttack() {
+    gameState.isPlaying = false;
+    const finalScore = gameState.score;
+    
+    showMessage(`⏱️ HẾT GIỜ! Điểm cuối: ${finalScore}`, 'warning');
+    
+    setTimeout(() => {
+        if (finalScore > 50) {
+            showVictoryMessage(`🏆 SPEED DEMON! ${finalScore} điểm trong 60 giây! Bạn quá pro rồi! 🔥`);
+        } else if (finalScore > 30) {
+            showVictoryMessage(`⚡ Tốc độ ổn đấy! ${finalScore} điểm! Còn có thể làm tốt hơn nữa! 💪`);
+        } else {
+            showVictoryMessage(`🐌 Slow poke à? Chỉ ${finalScore} điểm thôi sao? Try harder nhé! 😅`);
+        }
+    }, 1000);
+}
+
+// Nightmare Mode Effects
+function applyNightmareEffects() {
+    // Spawn demons immediately
+    for (let i = 0; i < 5; i++) {
+        setTimeout(() => createDemon(), i * 200);
+    }
+    
+    // Constant screen shake
+    document.body.style.animation = 'shake 0.5s infinite';
+    
+    // Dark filter
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.3);
+        pointer-events: none;
+        z-index: 5;
+        animation: pulse 2s infinite;
+    `;
+    overlay.id = 'nightmare-overlay';
+    document.body.appendChild(overlay);
+    
+    // Play horror ambience
+    HorrorSounds.ambient();
+    setInterval(() => {
+        const sounds = ['screech', 'demonGrowl', 'glitchSound'];
+        HorrorSounds[sounds[Math.floor(Math.random() * sounds.length)]]();
+    }, 5000);
 }
 
 // Update theme based on game state
@@ -984,8 +1164,17 @@ function makeChoice(choice) {
 
 // Generate random results
 function generateResults() {
-    // CHAOS: Variable number of coins based on chaos level
-    let numCoins = 4;
+    // Determine coin count based on game mode
+    let numCoins;
+    const mode = gameModes[gameState.gameMode];
+    
+    if (typeof mode.coins === 'function') {
+        numCoins = mode.coins();
+    } else {
+        numCoins = mode.coins;
+    }
+    
+    // CHAOS: Variable number of coins if high chaos
     if (gameState.chaosLevel >= 3) {
         numCoins = Math.floor(Math.random() * 4) + 3; // 3-6 coins
     }
@@ -1000,6 +1189,16 @@ function generateResults() {
     }
     
     gameState.totalCoinsFlipped += numCoins;
+    
+    // Cursed mode: Mark some coins for flipping
+    if (gameState.gameMode === 'cursed') {
+        gameState.cursedCoins = [];
+        results.forEach((coin, index) => {
+            if (Math.random() < 0.3) { // 30% chance each coin is cursed
+                gameState.cursedCoins.push(index);
+            }
+        });
+    }
     
     // CHAOS: Sometimes add completely random text
     if (gameState.chaosLevel >= 5 && Math.random() < 0.3) {
@@ -1059,6 +1258,7 @@ function displayResults(results) {
         resultCoin.className = 'result-coin';
         resultCoin.textContent = result;
         resultCoin.style.animationDelay = `${index * 0.2}s`;
+        resultCoin.dataset.index = index;
         
         // CHAOS: Random colors at high chaos levels
         if (gameState.chaosLevel >= 4 && Math.random() < 0.5) {
@@ -1083,12 +1283,52 @@ function displayResults(results) {
     
     resultsDisplay.classList.add('show');
     
+    // Apply cursed coin flips if in cursed mode
+    if (gameState.gameMode === 'cursed' && gameState.cursedCoins.length > 0) {
+        setTimeout(() => {
+            applyCursedFlips(results);
+        }, results.length * 200 + 500);
+    }
+    
     // CHAOS: Variable hide time
     const hideTime = gameState.chaosLevel >= 2 ? Math.random() * 1500 + 500 : 2000;
     
     setTimeout(() => {
         resultsDisplay.classList.remove('show');
     }, hideTime);
+}
+
+// Apply Cursed Coin Flips
+function applyCursedFlips(results) {
+    if (gameState.cursedCoins.length === 0) return results;
+    
+    const newResults = [...results];
+    const resultCoinsElements = document.querySelectorAll('.result-coin');
+    
+    gameState.cursedCoins.forEach(index => {
+        // Flip the coin value
+        if (newResults[index] === 'NGÚP' || newResults[index] === 'ÚP') {
+            newResults[index] = 'ỬA';
+        } else if (newResults[index] === 'ỬA' || newResults[index] === 'NGỬA') {
+            newResults[index] = 'NGÚP';
+        }
+        
+        // Visual feedback
+        const coinEl = resultCoinsElements[index];
+        if (coinEl) {
+            coinEl.style.animation = 'cursedFlip 0.8s ease';
+            setTimeout(() => {
+                coinEl.textContent = newResults[index];
+                coinEl.style.filter = 'hue-rotate(120deg) brightness(1.5)';
+                coinEl.style.borderColor = '#9400d3';
+            }, 400);
+        }
+    });
+    
+    showMessage('👻 CÁC ĐỒNG XU BỊ NGUYỀN RỦA ĐÃ ĐỔI MẶT!', 'warning');
+    HorrorSounds.screech();
+    
+    return newResults;
 }
 
 // Check outcome
@@ -1157,6 +1397,22 @@ function handleLoss() {
     gameState.consecutiveLosses++;
     gameState.consecutiveWins = 0;
     
+    // Survival mode: Lose a life
+    if (gameState.gameMode === 'survival') {
+        gameState.survivalLives--;
+        document.getElementById('mode-extra').textContent = `❤️ Mạng: ${gameState.survivalLives}`;
+        
+        if (gameState.survivalLives <= 0) {
+            endSurvivalMode();
+            return;
+        }
+        
+        if (gameState.survivalLives === 1) {
+            showMessage('⚠️ CẢNH BÁO: CHỈ CÒN 1 MẠNG!', 'error');
+            HorrorSounds.screech();
+        }
+    }
+    
     updateScore();
     checkAchievements();
     updateTheme();
@@ -1166,6 +1422,22 @@ function handleLoss() {
     
     // Trigger dark theme transition
     transitionToDarkTheme();
+}
+
+// End Survival Mode
+function endSurvivalMode() {
+    gameState.isPlaying = false;
+    clearButtons();
+    
+    showMessage('💀 ĐÃ HẾT MẠNG! GAME OVER!', 'error');
+    HorrorSounds.screech();
+    
+    setTimeout(() => {
+        showJumpscare();
+        setTimeout(() => {
+            showVictoryMessage(`💀 SURVIVAL FAILED! Bạn đã thua sau ${gameState.wins} lượt thắng. Skill issue detected! 😈`);
+        }, 2000);
+    }, 1000);
 }
 
 // Transition to light theme (winning)
@@ -1440,6 +1712,14 @@ function disableButtons() {
 function enableButtons() {
     document.getElementById('btn-ngup').disabled = false;
     document.getElementById('btn-ua').disabled = false;
+}
+
+// Clear buttons (hide them)
+function clearButtons() {
+    const buttons = document.querySelectorAll('.btn-choice');
+    buttons.forEach(btn => {
+        btn.style.display = 'none';
+    });
 }
 
 // Add screen shake animation

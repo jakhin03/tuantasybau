@@ -580,6 +580,36 @@ body::before {
         font-size: 1.2rem;
     }
 
+    /* Game Modes - Mobile */
+    .game-modes {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.8rem;
+        margin: 1.5rem 0;
+    }
+
+    .mode-card {
+        padding: 1rem;
+    }
+
+    .mode-icon {
+        font-size: 2rem;
+    }
+
+    .mode-title {
+        font-size: 1rem;
+    }
+
+    .mode-desc {
+        font-size: 0.75rem;
+    }
+
+    .mode-info-bar {
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+    }
+
     .btn-start {
         padding: 1rem 2rem;
         font-size: 1.2rem;
@@ -769,6 +799,28 @@ body::before {
     .subtitle {
         font-size: 1rem;
     }
+    
+    .game-modes {
+        grid-template-columns: 1fr;
+        gap: 0.6rem;
+        margin: 1rem 0;
+    }
+    
+    .mode-card {
+        padding: 0.8rem;
+    }
+    
+    .mode-icon {
+        font-size: 1.8rem;
+    }
+    
+    .mode-title {
+        font-size: 0.9rem;
+    }
+    
+    .mode-desc {
+        font-size: 0.7rem;
+    }
 
     .btn-start {
         padding: 0.8rem 1.5rem;
@@ -790,6 +842,21 @@ body::before {
 
     .score-item .value {
         font-size: 1rem;
+    }
+    
+    .mode-info-bar {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.75rem;
+        flex-direction: row;
+        gap: 0.3rem;
+    }
+    
+    .mode-badge {
+        font-size: 0.7rem;
+    }
+    
+    .mode-extra {
+        font-size: 0.7rem;
     }
 
     .coin {
